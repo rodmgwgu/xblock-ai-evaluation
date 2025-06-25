@@ -154,5 +154,5 @@ class AIEvalXBlock(StudioEditableXBlockMixin, XBlock):
             )
 
     def get_llm_response(self, messages):
-        return get_llm_response(self.model, self.get_model_api_key(), messages,
-                                self.get_model_api_url())
+        return get_llm_response(self.model, self.get_model_api_key(),
+                                list(messages), self.get_model_api_url())
