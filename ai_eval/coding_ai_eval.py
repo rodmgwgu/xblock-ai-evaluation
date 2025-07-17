@@ -8,7 +8,7 @@ from django.utils.translation import gettext_noop as _
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.exceptions import JsonHandlerError
-from xblock.fields import Dict, Scope, String
+from xblock.fields import Dict, List, Scope, String
 from xblock.validation import ValidationMessage
 
 from .base import AIEvalXBlock
@@ -84,10 +84,13 @@ class CodingAIEvalXBlock(AIEvalXBlock):
         scope=Scope.settings,
     )
 
-    messages = Dict(
+    # XXX: deprecated
+    messages = Dict(scope=Scope.user_state)
+
+    sessions = List(
         help=_("Dictionary with messages"),
         scope=Scope.user_state,
-        default={USER_RESPONSE: "", AI_EVALUATION: "", CODE_EXEC_RESULT: {}},
+        default=[{USER_RESPONSE: "", AI_EVALUATION: "", CODE_EXEC_RESULT: {}}],
     )
 
     editable_fields = AIEvalXBlock.editable_fields + (
@@ -96,6 +99,13 @@ class CodingAIEvalXBlock(AIEvalXBlock):
         "judge0_api_key",
         "language",
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.messages:
+            self.sessions = [self.messages]
+            self.messages = {}
+            self.save()
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""

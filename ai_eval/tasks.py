@@ -76,25 +76,29 @@ def _extract_data(block):
         data.add_blocks_to_cache([block])
 
         try:
-            messages = data.get(DjangoKeyValueStore.Key(
+            sessions = data.get(DjangoKeyValueStore.Key(
                 scope=Scope.user_state,
                 user_id=user.id,
                 block_scope_id=block.location,
-                field_name='messages'
+                field_name='sessions'
             ))
         except KeyError:
             continue
 
-        conversation = 1
-        for user_message, llm_message in zip(messages['USER'], messages['LLM']):
-            yield (section_name, subsection_name, unit_name,
-                   str(block.location), block.display_name,
-                   user.username, user.email or "", conversation,
-                   "user", user_message)
-            yield (section_name, subsection_name, unit_name,
-                   str(block.location), block.display_name,
-                   user.username, user.email or "", conversation,
-                   "llm", llm_message)
+        for i, conversation in enumerate(sessions, start=1):
+            for message in conversation:
+                yield (
+                    section_name,
+                    subsection_name,
+                    unit_name,
+                    str(block.location),
+                    block.display_name,
+                    user.username,
+                    user.email or "",
+                    i,
+                    message["source"],
+                    message["content"]
+                )
 
 
 def _get_context(block):
